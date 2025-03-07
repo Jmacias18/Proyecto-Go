@@ -1,0 +1,45 @@
+.container {
+    background-color: #e1e9f0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/*estilos para la busqueda*/
+.inp {
+    border-radius: 5px;
+    height: 30px;
+    width: 300px;
+    margin: 20px;
+    padding-left: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+.listcontainer{
+    padding: 20px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+}
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+.tabla th, .tabla td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+.tabla th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.icon {
+    cursor: pointer;
+    margin-left: 10px;
+    color: #555;
+    transition: color 0.3s ease;
+}
+.icon:hover {
+    color: #000;
+}

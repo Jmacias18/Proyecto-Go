@@ -1,0 +1,156 @@
+.container {
+    background-color: #e1e9f0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/*estilos para la busqueda*/
+.inp {
+    border-radius: 5px;
+    height: 30px;
+    width: 300px;
+    margin: 20px;
+    padding-left: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+.listcontainer{
+    padding: 20px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+}
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+.tabla th, .tabla td {
+    padding: 20px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+.tabla th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.icon {
+    cursor: pointer;
+    margin-left: 10px;
+    color: #555;
+    transition: color 0.3s ease;
+}
+.icon:hover {
+    color: #000;
+}
+.create-profile-button {
+    background-color: #4ba961;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 5px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+.create-profile-button:hover {
+    background-color: darkgreen;
+    
+}
+
+/* Modal */
+.modal-overlay {
+    position:fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    z-index: 1001;
+}
+.modal h2 {
+    margin-top: 0;
+    text-align: center;
+    color: #333;
+    font-size: 1.5rem;
+}
+.modal label {
+    display: block;
+    margin-bottom: 1rem;
+}
+.modal input,
+.modal select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    appearance: none;
+    -webkit-appearance: none;
+    font-size: 1rem;
+}
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.modal-buttons button {
+    padding: 0.3rem 1 rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.modal-buttons button[type="submit"] {
+    background-color: green;
+    color: white;
+}
+.modal-buttons button[type="button"] {
+    background-color: #ccc;
+    color: #333;
+}
+.modal input[type="password"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    font-size: 1rem;
+}
+@media (max-width: 768px) {
+    .modal input[type="password"] {
+        font-size: 0.875;
+    }
+    .modal {
+        width: 100%;
+        padding: 1rem;
+    }
+    .modal h2 {
+        font-size: 1.25rem;
+    }
+    .modal input,
+    .modal select,
+    .modal button {
+        font-size: 0.875rem;
+    }
+}
