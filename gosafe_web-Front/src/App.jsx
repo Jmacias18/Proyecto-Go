@@ -22,13 +22,13 @@ function App() {
       <Route path="/login" element={<Login setUserInfo={setUserInfo} />} />
 
       {/* Dashboard con barra lateral */}
-      <Route path="/dashboard/*" element={<LayoutWithSidebar userInfo={userInfo} />}>  {/* Añade el asterisco */}
-        <Route index element={<Dashboard />} />
+      <Route path="/dashboard/*" element={<LayoutWithSidebar userInfo={userInfo} />}>
+        <Route index element={<Dashboard userInfo={userInfo} />} />
         <Route path="conductores" element={<AdminConductor />} />
         <Route path="pasajeros" element={<AdminPasajero />} />
-        <Route path="vehiculos" element={<Vehiculos />} />
+        <Route path="vehiculos" element={<Vehiculos userInfo={userInfo} />} />
         <Route path="viajes_pasajero" element={<ViajesPasajero />} />
-        <Route path="historial-conductor" element={<HistorialConductor />} />  {/* Añade la nueva ruta */}
+        <Route path="historial-conductor" element={<HistorialConductor userInfo={userInfo} />} />
       </Route>
 
       {/* Redirección si la ruta no existe */}
@@ -40,16 +40,16 @@ function App() {
 // Layout que incluye la barra lateral
 function LayoutWithSidebar({ userInfo }) {
   return (
-    <div style={{ display: "flex",  backgroundColor:"#e1e9f0" }}>
+    <div style={{ display: "flex", backgroundColor: "#e1e9f0" }}>
       <Sidebar userInfo={userInfo} />
       <div style={{ flex: 1, padding: "20px" }}>
         <Routes>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Dashboard userInfo={userInfo} />} />
           <Route path="conductores" element={<AdminConductor />} />
           <Route path="pasajeros" element={<AdminPasajero />} />
-          <Route path="vehiculos" element={<Vehiculos />} />
+          <Route path="vehiculos" element={<Vehiculos userInfo={userInfo} />} />
           <Route path="viajes_pasajero" element={<ViajesPasajero />} />
-          <Route path="historial-conductor" element={<HistorialConductor />} />  {/* Añade la nueva ruta */}
+          <Route path="historial-conductor" element={<HistorialConductor userInfo={userInfo} />} />
         </Routes>
       </div>
     </div>

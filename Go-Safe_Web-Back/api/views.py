@@ -3,43 +3,27 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import authenticate
 
-@csrf_exempt
-def login_admin(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            print("Datos recibidos para login_admin:", data)  # Imprimir los datos recibidos
-            user = authenticate(username=data['email'], password=data['password'])
-            if user is not None and user.is_staff:
-                print("Usuario autenticado:", user.username)  # Imprimir el nombre de usuario autenticado
-                return JsonResponse({'message': 'Login successful', 'user': user.username})
-            else:
-                print("Credenciales inválidas")  # Imprimir mensaje de credenciales inválidas
-                return JsonResponse({'error': 'Invalid credentials'}, status=400)
-        except Exception as e:
-            print("Error en login_admin:", str(e))  # Imprimir el error
-            return JsonResponse({'error': str(e)}, status=500)
-    print("Método de solicitud inválido para login_admin")  # Imprimir mensaje de método de solicitud inválido
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 @csrf_exempt
-def login_conductor(request):
+def login(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            print("Datos recibidos para login_conductor:", data)  # Imprimir los datos recibidos
-            user = authenticate(username=data['email'], password=data['password'])
-            if user is not None and not user.is_staff:
+            print("Datos recibidos para login:", data)  # Imprimir los datos recibidos
+            user = authenticate(username=data['correo'], password=data['contraseña'])
+            if user is not None:
                 print("Usuario autenticado:", user.username)  # Imprimir el nombre de usuario autenticado
-                return JsonResponse({'message': 'Login successful', 'user': user.username})
+                user_role = 'admin' if user.is_staff else 'conductor'
+                return JsonResponse({'message': 'Login successful', 'user': {'username': user.username, 'role': user_role}})
             else:
                 print("Credenciales inválidas")  # Imprimir mensaje de credenciales inválidas
                 return JsonResponse({'error': 'Invalid credentials'}, status=400)
         except Exception as e:
-            print("Error en login_conductor:", str(e))  # Imprimir el error
+            print("Error en login:", str(e))  # Imprimir el error
             return JsonResponse({'error': str(e)}, status=500)
-    print("Método de solicitud inválido para login_conductor")  # Imprimir mensaje de método de solicitud inválido
+    print("Método de solicitud inválido para login")  # Imprimir mensaje de método de solicitud inválido
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt

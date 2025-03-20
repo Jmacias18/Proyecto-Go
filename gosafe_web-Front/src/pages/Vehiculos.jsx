@@ -3,32 +3,51 @@ import { FaCar, FaPlus } from 'react-icons/fa';
 import axiosInstance from '../axiosConfig';
 import '../styles/Vehiculos.css';
 
-function Vehiculos() {
+function Vehiculos({ userInfo }) {
     const [vehiculos, setVehiculos] = useState([]);
     const [conductores, setConductores] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
+        // Verificar que userInfo esté definido
+        if (!userInfo) {
+            console.error('userInfo is undefined');
+            return;
+        }
+
         // Obtener la lista de vehículos
-        axiosInstance.get('/vehiculos')
-            .then(response => {
-                setVehiculos(response.data);
-            })
-            .catch(error => {
+        const fetchVehiculos = async () => {
+            try {
+                const response = await axiosInstance.get('/vehiculos');
+                console.log('API response:', response.data);
+                let vehiculosData = response.data;
+
+                // Filtrar los vehículos si el usuario es un conductor
+                if (userInfo.rol_id === 2) {
+                    vehiculosData = vehiculosData.filter(vehiculo => vehiculo.id_conductor === userInfo.id);
+                }
+
+                setVehiculos(vehiculosData);
+            } catch (error) {
                 console.error('Error fetching vehicles:', error);
-            });
+            }
+        };
 
         // Obtener la lista de conductores
-        axiosInstance.get('/conductores')
-            .then(response => {
+        const fetchConductores = async () => {
+            try {
+                const response = await axiosInstance.get('/conductores');
                 // Filtrar solo los conductores activos
                 const conductoresActivos = response.data.filter(conductor => conductor.activo === 1);
                 setConductores(conductoresActivos);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error fetching drivers:', error);
-            });
-    }, []);
+            }
+        };
+
+        fetchVehiculos();
+        fetchConductores();
+    }, [userInfo]);
 
     const handleAddCar = () => {
         setIsModalOpen(true); // Abre el modal para agregar un nuevo vehículo
@@ -81,9 +100,12 @@ function Vehiculos() {
                     </div>
                 ))}
             </div>
-            <button className="create-button" onClick={handleAddCar}>
-                <FaPlus /> Agregar Vehículo
-            </button>
+            {/* Mostrar el botón de agregar vehículo solo si el usuario es un administrador */}
+            {userInfo.rol_id !== 2 && (
+                <button className="create-button" onClick={handleAddCar}>
+                    <FaPlus /> Agregar Vehículo
+                </button>
+            )}
 
             {isModalOpen && (
                 <div className="modal-overlay">

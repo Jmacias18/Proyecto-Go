@@ -17,6 +17,20 @@ function Sidebar({ userInfo }) {
         setIsOpen(!isOpen);
     };
 
+    const navLinks = [
+        { path: "/dashboard", label: "Dashboard" },
+        { path: "/dashboard/conductores", label: "Administrar Conductor" },
+        { path: "/dashboard/pasajeros", label: "Administrar Pasajero" },
+        { path: "/dashboard/vehiculos", label: "Vehículos" },
+        { path: "/dashboard/historial-conductor", label: "Historial Conductor" },
+    ];
+
+    const filteredNavLinks = userInfo && userInfo.rol_id === 2
+        ? navLinks.filter(link => link.path !== "/dashboard/conductores" && link.path !== "/dashboard/pasajeros")
+        : navLinks;
+    console.log(userInfo);
+    console.log(filteredNavLinks);
+
     return (
         <div className="sidebar-container">
             {/* Botón para abrir/cerrar el sidebar */}
@@ -47,13 +61,7 @@ function Sidebar({ userInfo }) {
 
                         {/* Navigation Links */}
                         <ul className="nav-links">
-                            {[
-                                { path: "/dashboard", label: "Dashboard" },
-                                { path: "/dashboard/conductores", label: "Administrar Conductor" },
-                                { path: "/dashboard/pasajeros", label: "Administrar Pasajero" },
-                                { path: "/dashboard/vehiculos", label: "Vehículos" },
-                                { path: "/dashboard/historial-conductor", label: "Historial Conductor" }, // Nuevo enlace
-                            ].map((item) => (
+                            {filteredNavLinks.map((item) => (
                                 <li key={item.path} className="nav-item">
                                     <Link
                                         to={item.path}

@@ -7,24 +7,58 @@ import logo from "../assets/gosafe_logo.png"; // Asegúrate de que la imagen est
 function Login({ setUserInfo }) {
     const [correo, setCorreo] = useState('');
     const [contraseña, setContraseña] = useState('');
-    const [role, setRole] = useState('admin'); // 'admin' o 'conductor'
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
+    const validate = () => {
+        const errors = {};
+        if (!correo) {
+            errors.correo = 'El correo electrónico es obligatorio';
+        } else if (!/\S+@\S+\.\S+/.test(correo)) {
+            errors.correo = 'El correo electrónico no es válido';
+        }
+        if (!contraseña) {
+            errors.contraseña = 'La contraseña es obligatoria';
+        }
+        return errors;
+    };
+
     const handleLogin = () => {
-        const loginEndpoint = role === 'admin' ? '/auth/login/admin' : '/auth/login/conductor';
-        axios.post(`https://api-gosafe.onrender.com/api${loginEndpoint}`, {
+        const validationErrors = validate();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        // Intentar iniciar sesión como administrador
+        axios.post('https://api-gosafe.onrender.com/api/auth/login/admin', {
             correo,
             contraseña
         })
         .then(response => {
-            // Manejar la respuesta del servidor
-            console.log('Login successful:', response.data);
+            // Manejar la respuesta del servidor para administrador
+            console.log('Login successful as admin:', response.data);
             setUserInfo(response.data.user); // Almacenar la información del usuario en el estado
             navigate("/dashboard");
         })
         .catch(error => {
-            // Manejar errores
-            console.error('Error logging in:', error);
+            // Si falla, intentar iniciar sesión como conductor
+            console.error('Error logging in as admin:', error);
+            axios.post('https://api-gosafe.onrender.com/api/auth/login/conductor', {
+                correo,
+                contraseña
+            })
+            .then(response => {
+                // Manejar la respuesta del servidor para conductor
+                console.log('Login successful as conductor:', response.data);
+                setUserInfo(response.data.user); // Almacenar la información del usuario en el estado
+                navigate("/dashboard");
+            })
+            .catch(error => {
+                // Manejar errores
+                console.error('Error logging in as conductor:', error);
+                alert('Correo o contraseña incorrectos');
+            });
         });
     };
 
@@ -40,6 +74,7 @@ function Login({ setUserInfo }) {
                     value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
                 />
+                {errors.correo && <p className="error">{errors.correo}</p>}
                 <input
                     type="password"
                     placeholder="Contraseña"
@@ -47,14 +82,7 @@ function Login({ setUserInfo }) {
                     value={contraseña}
                     onChange={(e) => setContraseña(e.target.value)}
                 />
-                <select
-                    className="login-input"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                >
-                    <option value="admin">Administrador</option>
-                    <option value="conductor">Conductor</option>
-                </select>
+                {errors.contraseña && <p className="error">{errors.contraseña}</p>}
                 <button onClick={handleLogin} className="login-button">Iniciar sesión</button>
             </div>
         </div>

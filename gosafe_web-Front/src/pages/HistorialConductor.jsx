@@ -3,19 +3,39 @@ import { FaSearch } from "react-icons/fa";
 import axiosInstance from '../axiosConfig';
 import "../Styles/HistorialConductor.css";
 
-const HistorialConductor = () => {
+const HistorialConductor = ({ userInfo }) => {
     const [viajes, setViajes] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        axiosInstance.get('/viajes/conductor')
-            .then(response => {
-                setViajes(response.data);
-            })
-            .catch(error => {
+        // Verificar que userInfo esté definido
+        if (!userInfo) {
+            console.error('userInfo is undefined');
+            return;
+        }
+
+        // Obtener la lista de viajes
+        const fetchViajes = async () => {
+            try {
+                // Obtener todos los viajes
+                const url = '/viajes/conductor';
+                console.log('Fetching all trips:', url);
+                const response = await axiosInstance.get(url);
+                console.log('API response:', response.data);
+
+                // Filtrar los viajes en el frontend si el usuario es un conductor
+                let filteredViajes = response.data;
+                if (userInfo.rol_id === 2) {
+                    filteredViajes = response.data.filter(viaje => viaje.id_conductor === userInfo.id);
+                }
+                setViajes(filteredViajes);
+            } catch (error) {
                 console.error('Error fetching trips:', error);
-            });
-    }, []);
+            }
+        };
+
+        fetchViajes();
+    }, [userInfo]);
 
     const filteredViajes = viajes.filter(viaje =>
         viaje.direccion_inicio.toLowerCase().includes(searchTerm.toLowerCase()) ||

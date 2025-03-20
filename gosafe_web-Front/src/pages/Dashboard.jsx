@@ -1,19 +1,36 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
-import qrCode from "../assets/qrcode.png";
 
-function Dashboard() {
+function Dashboard({ userInfo }) {
     const [data, setData] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [vehiculos, setVehiculos] = useState([]);
 
     useEffect(() => {
+        // Verificar que userInfo esté definido
+        if (!userInfo) {
+            console.error('userInfo is undefined');
+            return;
+        }
+
         // Obtener los datos de la API
-        axios.get('https://api-gosafe.onrender.com/api/viajes/conductor')
-            .then(response => {
-                const viajes = response.data;
+        const fetchData = async () => {
+            try {
+                // Obtener todos los viajes
+                const url = 'https://api-gosafe.onrender.com/api/viajes/conductor';
+                console.log('Fetching all trips:', url);
+                const response = await axios.get(url);
+                console.log('API response:', response.data);
+
+                // Filtrar los viajes en el frontend si el usuario es un conductor
+                let filteredViajes = response.data;
+                if (userInfo.rol_id === 2) {
+                    filteredViajes = response.data.filter(viaje => viaje.id_conductor === userInfo.id);
+                }
+
                 // Procesar los datos para sumar los kilómetros por fecha
-                const kmPorFecha = viajes.reduce((acc, viaje) => {
+                const kmPorFecha = filteredViajes.reduce((acc, viaje) => {
                     const fecha = new Date(viaje.fecha).toLocaleDateString();
                     if (!acc[fecha]) {
                         acc[fecha] = 0;
@@ -28,12 +45,34 @@ function Dashboard() {
                     km: kmPorFecha[fecha]
                 }));
 
+                console.log('Processed data:', data);
                 setData(data);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error fetching data:', error);
-            });
-    }, []);
+            }
+        };
+
+        // Obtener los vehículos del conductor
+        const fetchVehiculos = async () => {
+            try {
+                const response = await axios.get('https://api-gosafe.onrender.com/api/vehiculos');
+                console.log('Vehículos API response:', response.data);
+
+                // Filtrar los vehículos en el frontend si el usuario es un conductor
+                let filteredVehiculos = response.data;
+                if (userInfo.rol_id === 2) {
+                    filteredVehiculos = response.data.filter(vehiculo => vehiculo.id_conductor === userInfo.id);
+                }
+
+                setVehiculos(filteredVehiculos);
+            } catch (error) {
+                console.error('Error fetching vehicles:', error);
+            }
+        };
+
+        fetchData();
+        fetchVehiculos();
+    }, [userInfo]);
 
     // Funciones para abrir y cerrar el modal
     const openModal = () => setIsModalOpen(true);
@@ -57,20 +96,21 @@ function Dashboard() {
                 </ResponsiveContainer>
             </div>
 
-            {/* Botón para mostrar el modal */}
-            <button onClick={openModal} className="generate-qr-button">
-                Generar QR
-            </button>
+            {/* Mostrar el botón solo si el usuario no es un administrador */}
+            {userInfo.rol_id !== 3 && (
+                <button onClick={openModal} className="generate-qr-button">
+                    Generar Numero De Vehiculo
+                </button>
+            )}
 
             {/* Simulación del Modal */}
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <h2>Tu código</h2>
-                        <p>123456789</p>
-                        <div className="qr-container">
-                            <img src={qrCode} alt="QR Code" />
-                        </div>
+                        {vehiculos.map(vehiculo => (
+                            <p key={vehiculo.id}>{vehiculo.numero_taxi}</p>
+                        ))}
                         <button onClick={closeModal}>Cerrar</button>
                     </div>
                 </div>
