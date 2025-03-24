@@ -18,7 +18,7 @@ function Dashboard({ userInfo }) {
         const fetchData = async () => {
             try {
                 // Obtener todos los viajes
-                const url = 'https://api-gosafe.onrender.com/api/viajes/conductor';
+                const url = 'http://kscggogk8sw0kkokwg04gco0.31.170.165.191.sslip.io/api/viajes/conductor';
                 console.log('Fetching all trips:', url);
                 const response = await axios.get(url);
                 console.log('API response:', response.data);
@@ -55,7 +55,7 @@ function Dashboard({ userInfo }) {
         // Obtener los vehículos del conductor
         const fetchVehiculos = async () => {
             try {
-                const response = await axios.get('https://api-gosafe.onrender.com/api/vehiculos');
+                const response = await axios.get('http://kscggogk8sw0kkokwg04gco0.31.170.165.191.sslip.io/api/vehiculos');
                 console.log('Vehículos API response:', response.data);
 
                 // Filtrar los vehículos en el frontend si el usuario es un conductor

@@ -8,6 +8,8 @@ function AdminConductor() {
     const [editingUser, setEditingUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
     useEffect(() => {
         fetchConductores();
@@ -22,23 +24,35 @@ function AdminConductor() {
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
+                setModalMessage(`Error fetching data: ${error.message}`);
+                setModalVisible(true);
             });
     };
 
     const handleEdit = (usuario) => {
         console.log('Editing user:', usuario);
         setEditingUser(usuario);
+        setIsModalOpen(true); // Abrir el modal para editar
     };
 
     const handleSave = (event) => {
         event.preventDefault();
         const { id, nombre_completo, correo, telefono, activo } = editingUser;
         const dataToSend = { nombre_completo, correo, telefono, activo: activo !== undefined ? activo : 1 };
+
+        // Validaciones
+        if (!nombre_completo || !correo || !telefono) {
+            setModalMessage('Todos los campos son obligatorios');
+            setModalVisible(true);
+            return;
+        }
+
         console.log('Datos a enviar:', dataToSend); // Agregar console.log para depuración
         axiosInstance.put(`/conductores/${id}`, dataToSend)
             .then(response => {
                 console.log('User updated:', response.data);
                 setEditingUser(null);
+                setIsModalOpen(false); // Cerrar el modal después de guardar
                 // Actualizar el estado de usuarios localmente
                 setUsuarios(prevUsuarios => prevUsuarios.map(usuario =>
                     usuario.id === id ? { ...usuario, nombre_completo, correo, telefono, activo: 1 } : usuario
@@ -46,7 +60,8 @@ function AdminConductor() {
             })
             .catch(error => {
                 console.error('Error updating user:', error);
-                alert(`Error updating user: ${error.message}`);
+                setModalMessage(`Error updating user: ${error.message}`);
+                setModalVisible(true);
             });
     };
 
@@ -62,7 +77,8 @@ function AdminConductor() {
             })
             .catch(error => {
                 console.error('Error marking user as inactive:', error);
-                alert(`Error marking user as inactive: ${error.message}`);
+                setModalMessage(`Error marking user as inactive: ${error.message}`);
+                setModalVisible(true);
             });
     };
 
@@ -75,19 +91,58 @@ function AdminConductor() {
     };
 
     const handleCreateProfile = () => {
-        setIsModalOpen(true);   // Aquí abre el modal
+        setEditingUser({ nombre_completo: '', correo: '', telefono: '', contraseña: '' }); // Limpiar el usuario en edición
+        setIsModalOpen(true); // Abrir el modal para crear
     };
 
     const closeModal = () => {
-        setIsModalOpen(false); // Aquí cierra el modal
+        setIsModalOpen(false); // Cerrar el modal
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const nuevoPerfil = Object.fromEntries(formData.entries());
         nuevoPerfil.rol = 2; // Asegurarse de que el rol sea 'conductor'
         nuevoPerfil.activo = 1; // Asegurarse de que el conductor esté activo
+
+        // Validaciones
+        if (!nuevoPerfil.nombre_completo || !nuevoPerfil.correo || !nuevoPerfil.telefono || !nuevoPerfil.contraseña) {
+            setModalMessage('Todos los campos son obligatorios');
+            setModalVisible(true);
+            return;
+        }
+
+        // Verificar si el correo ya existe
+        try {
+            const responseCorreo = await axiosInstance.get(`/conductores?correo=${nuevoPerfil.correo}`);
+            if (responseCorreo.data.some(usuario => usuario.correo === nuevoPerfil.correo)) {
+                setModalMessage('El correo electrónico ya existe');
+                setModalVisible(true);
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking existing email:', error);
+            setModalMessage(`Error checking existing email: ${error.message}`);
+            setModalVisible(true);
+            return;
+        }
+
+        // Verificar si el teléfono ya existe
+        try {
+            const responseTelefono = await axiosInstance.get(`/conductores?telefono=${nuevoPerfil.telefono}`);
+            if (responseTelefono.data.some(usuario => usuario.telefono === nuevoPerfil.telefono)) {
+                setModalMessage('El número de teléfono ya existe');
+                setModalVisible(true);
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking existing phone number:', error);
+            setModalMessage(`Error checking existing phone number: ${error.message}`);
+            setModalVisible(true);
+            return;
+        }
+
         console.log("Nuevo Perfil", nuevoPerfil);
 
         // Enviar los datos al servidor para crear un nuevo conductor
@@ -100,13 +155,28 @@ function AdminConductor() {
             })
             .catch(error => {
                 console.error('Error creating new profile:', error);
-                alert(`Error creating new profile: ${error.message}`);
+                setModalMessage(`Error creating new profile: ${error.message}`);
+                setModalVisible(true);
             });
     };
 
     const filteredUsuarios = usuarios.filter(usuario =>
         usuario.activo === 1 && (usuario.nombre_completo || '').toLowerCase().includes((searchTerm || '').toLowerCase())
     );
+
+    const handleKeyPress = (event) => {
+        const regex = /^[A-Za-z\s]+$/;
+        if (!regex.test(event.key)) {
+            event.preventDefault();
+        }
+    };
+
+    const handlePhoneKeyPress = (event) => {
+        const regex = /^[0-9+]+$/;
+        if (!regex.test(event.key)) {
+            event.preventDefault();
+        }
+    };
 
     return (
         <div className="container">
@@ -160,58 +230,60 @@ function AdminConductor() {
                 <FaPlus /> Crear Perfil
             </button>
 
-            {editingUser && (
-                <div className="edit-container">
-                    <h2>Editar Conductor</h2>
-                    <form onSubmit={handleSave}>
-                        <input
-                            type="text"
-                            name="nombre_completo"
-                            value={editingUser.nombre_completo}
-                            onChange={handleChange}
-                        />
-                        <input
-                            type="text"
-                            name="correo"
-                            value={editingUser.correo}
-                            onChange={handleChange}
-                        />
-                        <input
-                            type="text"
-                            name="telefono"
-                            value={editingUser.telefono}
-                            onChange={handleChange}
-                        />
-                        <button type="submit">Guardar</button>
-                        <button type="button" onClick={() => setEditingUser(null)}>Cancelar</button>
-                    </form>
-                </div>
-            )}
-
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal">
-                        <h2>Agregar Nuevo Perfil</h2>
-                        <form onSubmit={handleSubmit}>
+                        <h2>{editingUser ? 'Editar Conductor' : 'Agregar Nuevo Perfil'}</h2>
+                        <form onSubmit={editingUser ? handleSave : handleSubmit}>
                             <label>
                                 Nombre:
-                                <input type="text" name="nombre_completo" required />
-                            </label>
-                            <label>
-                                Apellidos:
-                                <input type="text" name="apellido" required />
+                                <input
+                                    type="text"
+                                    name="nombre_completo"
+                                    value={editingUser ? editingUser.nombre_completo : ''}
+                                    onChange={handleChange}
+                                    required
+                                    onInvalid={(e) => e.target.setCustomValidity('Este campo es obligatorio')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                    onKeyPress={handleKeyPress}
+                                />
                             </label>
                             <label>
                                 Correo:
-                                <input type="email" name="correo" required />
+                                <input
+                                    type="email"
+                                    name="correo"
+                                    value={editingUser ? editingUser.correo : ''}
+                                    onChange={handleChange}
+                                    required
+                                    onInvalid={(e) => e.target.setCustomValidity('Este campo es obligatorio')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                />
                             </label>
                             <label>
                                 Telefono:
-                                <input type="tel" name="telefono" required />
+                                <input
+                                    type="tel"
+                                    name="telefono"
+                                    value={editingUser ? editingUser.telefono : ''}
+                                    onChange={handleChange}
+                                    required
+                                    onInvalid={(e) => e.target.setCustomValidity('Este campo es obligatorio')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                    onKeyPress={handlePhoneKeyPress}
+                                />
                             </label>
                             <label>
                                 Contraseña:
-                                <input type="password" name="contraseña" required />
+                                <input
+                                    type="password"
+                                    name="contraseña"
+                                    value={editingUser ? editingUser.contraseña : ''}
+                                    onChange={handleChange}
+                                    required
+                                    onInvalid={(e) => e.target.setCustomValidity('Este campo es obligatorio')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                />
                             </label>
                             <div className="modal-buttons">
                                 <button type="button" onClick={closeModal}>
@@ -223,6 +295,54 @@ function AdminConductor() {
                     </div>
                 </div>
             )}
+
+            {modalVisible && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>Error</h2>
+                        <p>{modalMessage}</p>
+                        <button onClick={() => setModalVisible(false)}>Cerrar</button>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                .modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5); /* Oscurecer el fondo */
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+
+                .modal-content {
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    width: 300px;
+                    text-align: center;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                }
+
+                .modal-content button {
+                    background-color: #4ba961;
+                    color: #fff;
+                    padding: 8px 16px;
+                    border: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                    cursor: pointer;
+                }
+
+                .modal-content button:hover {
+                    background-color: #16a34a;
+                }
+            `}</style>
         </div>
     );
 }

@@ -8,6 +8,8 @@ function Login({ setUserInfo }) {
     const [correo, setCorreo] = useState('');
     const [contraseña, setContraseña] = useState('');
     const [errors, setErrors] = useState({});
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
     const navigate = useNavigate();
 
     const validate = () => {
@@ -27,11 +29,13 @@ function Login({ setUserInfo }) {
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
+            setModalMessage(Object.values(validationErrors).join('\n'));
+            setModalVisible(true);
             return;
         }
 
         // Intentar iniciar sesión como administrador
-        axios.post('https://api-gosafe.onrender.com/api/auth/login/admin', {
+        axios.post('http://kscggogk8sw0kkokwg04gco0.31.170.165.191.sslip.io/api/auth/login/admin', {
             correo,
             contraseña
         })
@@ -44,7 +48,7 @@ function Login({ setUserInfo }) {
         .catch(error => {
             // Si falla, intentar iniciar sesión como conductor
             console.error('Error logging in as admin:', error);
-            axios.post('https://api-gosafe.onrender.com/api/auth/login/conductor', {
+            axios.post('http://kscggogk8sw0kkokwg04gco0.31.170.165.191.sslip.io/api/auth/login/conductor', {
                 correo,
                 contraseña
             })
@@ -57,7 +61,8 @@ function Login({ setUserInfo }) {
             .catch(error => {
                 // Manejar errores
                 console.error('Error logging in as conductor:', error);
-                alert('Correo o contraseña incorrectos');
+                setModalMessage('Correo o contraseña incorrectos');
+                setModalVisible(true);
             });
         });
     };
@@ -74,7 +79,6 @@ function Login({ setUserInfo }) {
                     value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
                 />
-                {errors.correo && <p className="error">{errors.correo}</p>}
                 <input
                     type="password"
                     placeholder="Contraseña"
@@ -82,9 +86,56 @@ function Login({ setUserInfo }) {
                     value={contraseña}
                     onChange={(e) => setContraseña(e.target.value)}
                 />
-                {errors.contraseña && <p className="error">{errors.contraseña}</p>}
                 <button onClick={handleLogin} className="login-button">Iniciar sesión</button>
             </div>
+
+            {modalVisible && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>Error</h2>
+                        <p>{modalMessage}</p>
+                        <button onClick={() => setModalVisible(false)}>Cerrar</button>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                .modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5); /* Oscurecer el fondo */
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+
+                .modal-content {
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    width: 300px;
+                    text-align: center;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                }
+
+                .modal-content button {
+                    background-color: #4ba961;
+                    color: #fff;
+                    padding: 8px 16px;
+                    border: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                    cursor: pointer;
+                }
+
+                .modal-content button:hover {
+                    background-color: #16a34a;
+                }
+            `}</style>
         </div>
     );
 }
